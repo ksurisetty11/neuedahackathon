@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sentiment News Analyzer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6fa;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #2d3e50;
+            color: #fff;
+            padding: 1rem 2rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 2rem;
+        }
+        .input-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .input-section select, .input-section button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .input-section button {
+            background: #4caf50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .results {
+            margin-top: 1.5rem;
+        }
+        .news-item {
+            border-bottom: 1px solid #eee;
+            padding: 1rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .news-title {
+            font-weight: bold;
+            color: #2d3e50;
+        }
+        .sentiment {
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: #fff;
+            margin-left: 1rem;
+        }
+        .positive { background: #4caf50; }
+        .neutral { background: #ffc107; color: #333; }
+        .negative { background: #f44336; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sentiment News Analyzer</h1>
+        <p>Analyze the sentiment of the latest news articles</p>
+    </header>
+    <div class="container">
+        <div class="input-section">
+            <select id="tickerSelect">
+                <option value="AAPL">Apple (AAPL)</option>
+                <option value="MSFT">Microsoft (MSFT)</option>
+                <option value="TSLA">Tesla (TSLA)</option>
+                <option value="AMZN">Amazon (AMZN)</option>
+                <option value="GOOGL">Alphabet (GOOGL)</option>
+                <option value="NVDA">Nvidia (NVDA)</option>
+                <option value="META">Meta (META)</option>
+                <option value="NFLX">Netflix (NFLX)</option>
+                <option value="JPM">JPMorgan Chase (JPM)</option>
+                <option value="DIS">Disney (DIS)</option>
+            </select>
+            <button id="analyzeBtn">Analyze</button>
+        </div>
+        <div class="results" id="results">
+            <!-- News results with sentiment will appear here -->
+        </div>
+    </div>
+    <script>
+        const sentimentData = {
+            "AAPL": [
+            { title: "Apple launches new iPhone", sentiment: "positive" },
+            { title: "Apple's innovation praised by analysts", sentiment: "positive" },
+            { title: "Apple's market share remains steady", sentiment: "neutral" },
+            { title: "Apple faces supply chain issues", sentiment: "negative" }
+            ],
+            "MSFT": [
+            { title: "Microsoft announces AI advancements", sentiment: "positive" },
+            { title: "Microsoft's cloud services grow", sentiment: "neutral" },
+            { title: "Microsoft faces antitrust scrutiny", sentiment: "negative" }
+            ],
+            "TSLA": [
+            { title: "Tesla's new model breaks records", sentiment: "positive" },
+            { title: "Tesla's energy division sees growth", sentiment: "positive" },
+            { title: "Tesla's stock falls", sentiment: "negative" },
+            { title: "Tesla recalls vehicles for safety", sentiment: "negative" },
+            { title: "Tesla faces production delays", sentiment: "negative" }
+            ],
+            "AMZN": [
+            { title: "Amazon expands delivery network", sentiment: "positive" },
+            { title: "Amazon's Prime Day breaks sales records", sentiment: "positive" },
+            { title: "Amazon's revenue meets expectations", sentiment: "neutral" },
+            { title: "Amazon faces worker strikes", sentiment: "negative" }
+            ],
+            "GOOGL": [
+            { title: "Google's AI tools gain popularity", sentiment: "positive" },
+            { title: "Google's cloud services expand", sentiment: "neutral" },
+            { title: "Google's search engine usage steady", sentiment: "neutral" },
+            { title: "Google fined for privacy violations", sentiment: "negative" }
+            ],
+            "NVDA": [
+            { title: "Nvidia's GPUs lead the market", sentiment: "positive" },
+            { title: "Nvidia's AI technology praised", sentiment: "positive" },
+            { title: "Nvidia's revenue growth slows", sentiment: "neutral" },
+            { title: "Nvidia faces competition in AI chips", sentiment: "negative" },
+            { title: "Nvidia's stock sees slight dip", sentiment: "negative" }
+            ],
+            "META": [
+            { title: "Meta's VR platform gains traction", sentiment: "positive" },
+            { title: "Meta's advertising revenue increases", sentiment: "positive" },
+            { title: "Meta's user base decreases", sentiment: "negative" },
+            { title: "Meta faces backlash over privacy", sentiment: "negative" }
+            ],
+            "NFLX": [
+            { title: "Netflix's new series is a hit", sentiment: "positive" },
+            { title: "Netflix's stock rebounds", sentiment: "positive" },
+            { title: "Netflix's content library expands", sentiment: "neutral" },
+            { title: "Netflix faces subscriber losses", sentiment: "negative" },
+            { title: "Netflix faces competition from rivals", sentiment: "negative" }
+            ],
+            "JPM": [
+            { title: "JPMorgan reports record profits", sentiment: "positive" },
+            { title: "JPMorgan's new initiatives praised", sentiment: "positive" },
+            { title: "JPMorgan's growth remains steady", sentiment: "positive" },
+            { title: "JPMorgan faces regulatory fines", sentiment: "negative" }
+            ],
+            "DIS": [
+            { title: "Disney's new movie breaks records", sentiment: "positive" },
+            { title: "Disney's merchandise sales increase", sentiment: "positive" },
+            { title: "Disney's streaming service grows", sentiment: "neutral" },
+            { title: "Disney faces theme park closures", sentiment: "negative" },
+            { title: "Disney faces criticism over pricing", sentiment: "negative" }
+            ]
+        };
+
+        document.getElementById('analyzeBtn').addEventListener('click', function() {
+            const ticker = document.getElementById('tickerSelect').value;
+            const results = document.getElementById('results');
+            const newsItems = sentimentData[ticker];
+            results.innerHTML = newsItems.map(item => `
+                <div class="news-item">
+                    <span class="news-title">${item.title}</span>
+                    <span class="sentiment ${item.sentiment}">${item.sentiment.charAt(0).toUpperCase() + item.sentiment.slice(1)}</span>
+                </div>
+            `).join('');
+        });
+    </script>
+</body>
+</html>
