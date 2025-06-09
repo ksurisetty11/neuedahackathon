@@ -94,25 +94,38 @@
         </div>
     </div>
     <script>
-        document.getElementById('analyzeBtn').addEventListener('click', function() {
-            const ticker = document.getElementById('tickerSelect').value;
-            // Placeholder: Replace with actual API call using ticker
-            const results = document.getElementById('results');
-            results.innerHTML = `
-                <div class="news-item">
-                    <span class="news-title">Sample news for ${ticker} 1</span>
-                    <span class="sentiment positive">Positive</span>
-                </div>
-                <div class="news-item">
-                    <span class="news-title">Sample news for ${ticker} 2</span>
-                    <span class="sentiment negative">Negative</span>
-                </div>
-                <div class="news-item">
-                    <span class="news-title">Sample news for ${ticker} 3</span>
-                    <span class="sentiment neutral">Neutral</span>
-                </div>
-            `;
-        });
+document.getElementById('analyzeBtn').addEventListener('click', async function() {
+    const ticker = document.getElementById('tickerSelect').value;
+    const results = document.getElementById('results');
+    results.innerHTML = '<div>Loading...</div>';
+    try {
+        const response = await fetch(`/api/news?symbol=${ticker}`);
+        if (!response.ok) throw new Error('Failed to fetch news');
+        const data = await response.json();
+        const newsData = data.news;
+        const stats = data.stats;
+        let statsHtml = `
+            <div style="margin-bottom:1rem;">
+                <strong>Sentiment Stats:</strong>
+                <span class="sentiment positive">Positive: ${stats.positive.toFixed(1)}%</span>
+                <span class="sentiment negative">Negative: ${stats.negative.toFixed(1)}%</span>
+                <span class="sentiment neutral">Neutral: ${stats.neutral.toFixed(1)}%</span>
+            </div>
+        `;
+        if (newsData.length === 0) {
+            results.innerHTML = statsHtml + '<div>No news found for this ticker.</div>';
+            return;
+        }
+        results.innerHTML = statsHtml + newsData.map(item => `
+            <div class="news-item">
+                <span class="news-title">${item.headline}</span>
+                <span class="sentiment ${item.sentiment}">${item.sentiment.charAt(0).toUpperCase() + item.sentiment.slice(1)}</span>
+            </div>
+        `).join('');
+    } catch (err) {
+        results.innerHTML = `<div style="color:red;">Error: ${err.message}</div>`;
+    }
+});
     </script>
 </body>
 </html>

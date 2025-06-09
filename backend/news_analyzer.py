@@ -1,8 +1,12 @@
 import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 import requests
 from typing import List, Dict
 from dotenv import load_dotenv
 from transformers import pipeline
+import yfinance as yf
+from datetime import datetime, timedelta
+import pandas as pd
 
 # Load environment variables from .env file
 load_dotenv()
@@ -39,35 +43,70 @@ def fetch_alpaca_news(symbol: str, limit: int = 50) -> List[Dict]:
         print(f"API Error: {response.text}")  # Debug: show error message
         return []
 
-def analyze_news_sentiment(symbol: str) -> List[Dict]:
+def get_price_on_date(symbol: str, date_str: str):
+    try:
+        # Parse the date string (Alpaca news uses ISO format, e.g., '2025-06-09T13:45:00Z')
+        date = pd.to_datetime(date_str).date()
+        # Fetch 2 days to ensure we get the previous close
+        data = yf.Ticker(symbol).history(start=date - timedelta(days=1), end=date + timedelta(days=1))
+        if len(data) == 0:
+            return None, None
+        # Find the row for the news date (or the previous trading day if news is after market close)
+        if str(date) in data.index.astype(str):
+            price = data.loc[str(date), 'Close']
+        else:
+            # Use the last available close before the news date
+            price = data['Close'].iloc[-1]
+        # Calculate price change from previous close
+        prev_close = data['Close'].iloc[-2] if len(data) > 1 else price
+        price_change = ((price - prev_close) / prev_close) * 100 if prev_close else 0
+        return float(price), float(price_change)
+    except Exception as e:
+        print(f"Price fetch error: {e}")
+        return None, None
+
+def analyze_news_sentiment(symbol: str):
     news_items = fetch_alpaca_news(symbol)
     analyzed = []
     pos_count = 0
     neg_count = 0
     neu_count = 0
-    for idx, item in enumerate(news_items, 1):
+    total = 0
+    for item in news_items:
         headline = item.get('headline', '')
+        # Try to get the published date from Alpaca news (may be 'created_at' or 'published_at')
+        date_str = item.get('created_at') or item.get('published_at')
+        price, price_change = get_price_on_date(symbol, date_str) if date_str else (None, None)
         sentiment = transformer_sentiment(headline)
-        analyzed.append({
-            'headline': headline,
-            'sentiment': sentiment
-        })
+        total += 1
         if sentiment == 'positive':
             pos_count += 1
         elif sentiment == 'negative':
             neg_count += 1
         else:
             neu_count += 1
-        total = idx
         percent_positive = (pos_count / total * 100) if total else 0
         percent_negative = (neg_count / total * 100) if total else 0
         percent_neutral = (neu_count / total * 100) if total else 0
-        print(f"{headline} => {sentiment} | Stats so far: Positive: {percent_positive:.1f}% | Negative: {percent_negative:.1f}% | Neutral: {percent_neutral:.1f}%")
+        analyzed.append({
+            'headline': headline,
+            'sentiment': sentiment,
+            'stats': {
+                'positive': percent_positive,
+                'negative': percent_negative,
+                'neutral': percent_neutral
+            },
+            'price': price,
+            'price_change_pct': price_change,
+            'date': date_str
+        })
     return analyzed
 
 # Example usage:
 if __name__ == "__main__":
     symbol = "AAPL"
-    results = analyze_news_sentiment(symbol)
-    for r in results:
-        print(f"{r['headline']} => {r['sentiment']}")
+    news = analyze_news_sentiment(symbol)
+    import json
+    print(json.dumps({"news": news}, indent=2))
+    with open("news_output.json", "w") as f:
+        json.dump({"news": news}, f, indent=2)
