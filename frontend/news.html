@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sentiment News Analyzer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6fa;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #2d3e50;
+            color: #fff;
+            padding: 1rem 2rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 2rem;
+        }
+        .input-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .input-section select, .input-section button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .input-section button {
+            background: #4caf50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .results {
+            margin-top: 1.5rem;
+        }
+        .news-item {
+            border-bottom: 1px solid #eee;
+            padding: 1rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .news-title {
+            font-weight: bold;
+            color: #2d3e50;
+        }
+        .sentiment {
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: #fff;
+            margin-left: 1rem;
+        }
+        .positive { background: #4caf50; }
+        .neutral { background: #ffc107; color: #333; }
+        .negative { background: #f44336; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sentiment News Analyzer</h1>
+        <p>Analyze the sentiment of the latest news articles</p>
+    </header>
+    <div class="container">
+        <div class="input-section">
+            <select id="tickerSelect">
+                <option value="AAPL">Apple (AAPL)</option>
+                <option value="MSFT">Microsoft (MSFT)</option>
+                <option value="TSLA">Tesla (TSLA)</option>
+                <option value="AMZN">Amazon (AMZN)</option>
+                <option value="GOOGL">Alphabet (GOOGL)</option>
+                <option value="NVDA">Nvidia (NVDA)</option>
+                <option value="META">Meta (META)</option>
+                <option value="NFLX">Netflix (NFLX)</option>
+                <option value="JPM">JPMorgan Chase (JPM)</option>
+                <option value="DIS">Disney (DIS)</option>
+            </select>
+            <button id="analyzeBtn">Analyze</button>
+        </div>
+        <div class="results" id="results">
+            <!-- News results with sentiment will appear here -->
+        </div>
+    </div>
+    <script>
+        document.getElementById('analyzeBtn').addEventListener('click', function() {
+            const ticker = document.getElementById('tickerSelect').value;
+            // Placeholder: Replace with actual API call using ticker
+            const results = document.getElementById('results');
+            results.innerHTML = `
+                <div class="news-item">
+                    <span class="news-title">Sample news for ${ticker} 1</span>
+                    <span class="sentiment positive">Positive</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-title">Sample news for ${ticker} 2</span>
+                    <span class="sentiment negative">Negative</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-title">Sample news for ${ticker} 3</span>
+                    <span class="sentiment neutral">Neutral</span>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>
