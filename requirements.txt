@@ -1,0 +1,5 @@
+# This file lists the Python packages required for the project.
+alpaca-trade-api
+dotenv
+transformers
+torch
